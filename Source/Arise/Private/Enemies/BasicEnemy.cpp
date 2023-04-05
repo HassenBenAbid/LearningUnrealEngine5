@@ -4,6 +4,7 @@
 #include "Enemies/BasicEnemy.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/WidgetComponent.h"
+#include "Core/Components/HealthComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
@@ -15,14 +16,17 @@ ABasicEnemy::ABasicEnemy()
     this->MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
     this->MeshComponent->SetupAttachment(this->GetRootComponent());
 
-    this->WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+    this->WidgetComponent = CreateDefaultSubobject<UFocusAtTargetWidgetComponent>(TEXT("WidgetComponent"));
     this->WidgetComponent->SetupAttachment(this->MeshComponent);
+
+    this->HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 }
 
-// Called when the game starts or when spawned
 void ABasicEnemy::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
+
+    this->HealthComponent->InitializeHealthUI(*this->WidgetComponent);
 }
 
 // Called every frame

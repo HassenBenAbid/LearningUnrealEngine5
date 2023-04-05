@@ -52,7 +52,7 @@ void UAriseTimelineComponent::ReverseTimeline()
 {
     auto temp = this->StartLocation;
     this->StartLocation = this->EndLocation;
-    this->EndLocation = temp;
+    this->EndLocation   = temp;
 }
 
 void UAriseTimelineComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "Character/HasHealth.h"
+#include "Core/Components/HealthComponent.h"
 #include "Components/WidgetComponent.h"
+#include "UI/FocusAtTargetWidgetComponent.h"
 #include "BasicEnemy.generated.h"
 
 UCLASS()
-class ARISE_API ABasicEnemy : public APawn, public IHasHealth
+class ARISE_API ABasicEnemy : public APawn
 {
 	GENERATED_BODY()
 
@@ -17,23 +18,24 @@ public:
 	// Sets default values for this pawn's properties
 	ABasicEnemy();
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    UStaticMeshComponent* MeshComponent; 
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    UWidgetComponent* WidgetComponent;
-
     // Called every frame
     virtual void Tick(float DeltaTime) override;
     // Called to bind functionality to input
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-    inline float GetHealthPercentage_Implementation() { return this->CurrentHealth / this->MaxHealth; };
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
+
+    UPROPERTY(EditDefaultsOnly) 
+    UStaticMeshComponent* MeshComponent;
+
+    UPROPERTY(EditDefaultsOnly) 
+    UFocusAtTargetWidgetComponent* WidgetComponent;
+
+    UPROPERTY(EditAnywhere)     
+    UHealthComponent* HealthComponent;
 
 };

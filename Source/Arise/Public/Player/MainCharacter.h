@@ -6,27 +6,19 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/Character.h"
 #include "AriseTimelineComponent.h"
-#include "Character/Attacker.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/BoxComponent.h"
+#include "Core/Components/AttacksComponent.h"
 #include "MainCharacter.generated.h"
 
 UCLASS()
-class ARISE_API AMainCharacter : public ACharacter, public IAttacker
+class ARISE_API AMainCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
-
-    UPROPERTY(EditAnywhere, Category = Teleport)
-    UNiagaraComponent* TeleportEffect; //This will allow us to enable some particle effects when the player teleports.
-
-    UPROPERTY(EditAnywhere, Category = Movement)
-    TEnumAsByte<ECollisionChannel> CollisionChannel; //
-
-    UPROPERTY(EditAnywhere, Category = Attacking)
-    TArray<UAnimMontage*> Attacks;    //This store all the different basic attacks of this character (the list order is used for the combo order).
 
 	// Sets default values for this character's properties
 	AMainCharacter();
@@ -36,10 +28,6 @@ public:
 
     // Called to bind functionality to input
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-    UFUNCTION(BlueprintCallable) void EndAttack()        override;
-    UFUNCTION(BlueprintCallable) void AllowComboAttack() override;
-                                 void StartAttack()      override;
 
 protected:
 
@@ -57,8 +45,20 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = true))
     UCameraComponent* FollowCamera;  //This is the camera that will follow the player.
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Teleport, meta = (AllowPrivateAccess = true))
+    UPROPERTY(EditDefaultsOnly, Category = Teleport, meta = (AllowPrivateAccess = true))
     UAriseTimelineComponent* TimelineComponent; //
+
+    UPROPERTY(EditDefaultsOnly, Category = Teleport)
+    UNiagaraComponent* TeleportEffect; //This will allow us to enable some particle effects when the player teleports.
+
+    UPROPERTY(EditAnywhere, Category = Movement)
+    TEnumAsByte<ECollisionChannel> CollisionChannel; //
+
+    UPROPERTY(EditDefaultsOnly, Category = Attacks)
+    UAttacksComponent* AttacksComponent; //This will take care of storing the different attacks and starting them.
+
+    UPROPERTY(VisibleAnywhere)
+    UBoxComponent* WeaponCollider;
 
 
     UPROPERTY(EditAnywhere, Category = Teleport)
@@ -74,8 +74,9 @@ private:
     UPROPERTY() APlayerController* MainController;
     UPROPERTY() UAnimInstance*     PlayerAnim;
 
-    bool    IsTeleporting;
     FVector TeleportTargetPosition;
+
+    void BasicAttack(); //
    
     void MoveForward(float value); //Move the player forward/backward.
     void MoveRight(float value);   //Move the player right/left.

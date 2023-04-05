@@ -42,6 +42,17 @@ AMainCharacter::AMainCharacter()
 
     //We initialize our custom timeline component.
     this->TimelineComponent = CreateDefaultSubobject<UAriseTimelineComponent>(TEXT("AriseTimeline"));
+
+    //
+    this->AttacksComponent = CreateDefaultSubobject<UAttacksComponent>(TEXT("AttacksComponent"));
+
+    //Setting up the weapon collider.
+    this->WeaponCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("WeaponCollider"));
+    this->WeaponCollider->SetupAttachment(this->GetMesh(), FName("WeaponSocket"));
+    this->WeaponCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    this->WeaponCollider->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+    this->WeaponCollider->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+    this->WeaponCollider->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 }
 
 // Called when the game starts or when spawned
@@ -62,16 +73,17 @@ void AMainCharacter::BeginPlay()
     this->TimelineComponent->OnTimelineProgress.AddLambda([this](FVector newValue) { this->FollowCamera->SetFieldOfView(newValue.Y); });
     //When the zomm in finishes, we then teleport the player, disable the teleportation effect and reverse the timeline (zoom out effect).
     this->TimelineComponent->OnTimelineFinished.AddLambda([this](bool wasReversed)
+    {
+        if (!wasReversed)
         {
-            if (!wasReversed)
-            {
-                this->TeleportTo(this->TeleportTargetPosition, this->GetActorRotation());
-                this->TimelineComponent->StartTimelineReverse();
-                this->TeleportEffect->Deactivate();
-            }
-        });
+            this->TeleportTo(this->TeleportTargetPosition, this->GetActorRotation());
+            this->TimelineComponent->StartTimelineReverse();
+            this->TeleportEffect->Deactivate();
+        }
+    });
 
-    this->ComboCounter = 0;
+    //Initialize attack component
+    
 }
 
 // Called every frame
@@ -88,7 +100,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
     //Binding the actions.
     PlayerInputComponent->BindAction("Jump"       , IE_Pressed, this, &AMainCharacter::TeleportAbility);
-    PlayerInputComponent->BindAction("BasicAttack", IE_Pressed, this, &AMainCharacter::StartAttack);
+    PlayerInputComponent->BindAction("BasicAttack", IE_Pressed, this, &AMainCharacter::BasicAttack);
     
     //Binding the axis.
     PlayerInputComponent->BindAxis("Forward", this, &AMainCharacter::MoveForward);
@@ -138,27 +150,7 @@ void AMainCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor
     this->GetCharacterMovement()->Velocity = this->GetVelocity() * -1;
 }
 
-void AMainCharacter::StartAttack()
-{
-    if (!this->IsAttacking)
-    {
-        this->IsAttacking = true;
-        this->PlayerAnim->Montage_Play(this->Attacks[ComboCounter]);
-    }
-}
-
-void AMainCharacter::EndAttack()
-{
-    this->ComboCounter = 0;
-    this->IsAttacking  = false;
-}
-
-void AMainCharacter::AllowComboAttack()
-{
-    this->ComboCounter = this->ComboCounter >= this->Attacks.Num() - 1 ? 0 : this->ComboCounter + 1; //If the combo is finished, we restart the combo counter.
-    //If the combo has just ended then we should make the player wait for the last attack animation to completely finish before being able to attack again.
-    if (this->ComboCounter > 0) this->IsAttacking  = false;
-}
+void AMainCharacter::BasicAttack() { this->AttacksComponent->PlayAttack(EAttackType::EAT_BasicAttack); }
 
 FRotator AMainCharacter::GetYawRotation() { return FRotator(0.f, this->Controller->GetControlRotation().Yaw, 0.f); }
 
