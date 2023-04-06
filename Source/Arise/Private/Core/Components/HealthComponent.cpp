@@ -58,7 +58,7 @@ void UHealthComponent::UpdateHealthUI()
 void UHealthComponent::TakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
 {
     if (this->CurrentHealth <= 0) this->Die();
-    else this->CurrentHealth -= Damage;
+    else this->ChangeHealth(-Damage);
 }
 
 void UHealthComponent::Die()

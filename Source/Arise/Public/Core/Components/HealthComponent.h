@@ -19,7 +19,7 @@ public:
     
 	UHealthComponent();
 
-    UFUNCTION(BlueprintCallable) inline float GetHealthPercentage() const { return this->CurrentHealth / this->MaxHealth; };
+    UFUNCTION(BlueprintCallable) inline float GetHealthPercentage() const { return (float)this->CurrentHealth / (float)this->MaxHealth; };
 
     void InitializeHealthUI(class UWidgetComponent& widgetComponent); //Using the specified widget compoenent, we create the health widget and update it.
     void ChangeHealth(int value);

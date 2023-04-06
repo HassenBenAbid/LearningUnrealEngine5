@@ -6,7 +6,11 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/BoxComponent.h"
+#include "Core/Components/HealthComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Core/GameManager.h"
 #include "NiagaraComponent.h"
 
 // Sets default values
@@ -37,8 +41,8 @@ AMainCharacter::AMainCharacter()
     this->GetCharacterMovement()->bOrientRotationToMovement = true;
     this->GetCharacterMovement()->RotationRate              = FRotator(0.f, 600.f, 0.f);
 
-    //We implement OnHit feedbacks.
-    this->GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AMainCharacter::OnHit);
+    //We implement OnObjectHit feedbacks.
+    this->GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AMainCharacter::OnObjectHit);
 
     //We initialize our custom timeline component.
     this->TimelineComponent = CreateDefaultSubobject<UAriseTimelineComponent>(TEXT("AriseTimeline"));
@@ -49,10 +53,13 @@ AMainCharacter::AMainCharacter()
     //Setting up the weapon collider.
     this->WeaponCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("WeaponCollider"));
     this->WeaponCollider->SetupAttachment(this->GetMesh(), FName("WeaponSocket"));
+    //Set what channels should the weapon register hits.
     this->WeaponCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     this->WeaponCollider->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
     this->WeaponCollider->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
     this->WeaponCollider->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+    //Try to deal damage when the weapon actually hits something.
+    this->WeaponCollider->OnComponentBeginOverlap.AddDynamic(this, &AMainCharacter::OnWeaponHit);
 }
 
 // Called when the game starts or when spawned
@@ -60,8 +67,7 @@ void AMainCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-    this->MainController = this->GetWorld()->GetFirstPlayerController(); //We get the main controller used by the player.
-    this->PlayerAnim     = this->GetMesh()->GetAnimInstance();
+    this->PlayerAnim = this->GetMesh()->GetAnimInstance();
     if (!this->PlayerAnim) UE_LOG(LogTemp, Error, TEXT("There's no animation instance for %s"), *this->GetName());
 
     //We set the different params of the custom timeline component.
@@ -82,7 +88,9 @@ void AMainCharacter::BeginPlay()
         }
     });
 
-    //Initialize attack component
+    //Initialize attacks component.
+    this->AttacksComponent->OnDealingDamageStarted(EAttackType::EAT_BasicAttack, [this] {this->EnableWeaponCollision(true); });
+    this->AttacksComponent->OnDealingDamageStopped(EAttackType::EAT_BasicAttack, [this] {this->EnableWeaponCollision(false);});
     
 }
 
@@ -143,14 +151,23 @@ void AMainCharacter::TeleportAbility()
     this->TeleportEffect->Activate(true);     //We also start the teleportation special effect.
 }
 
-void AMainCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AMainCharacter::OnObjectHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrimitiveComponent* otherComp, FVector normalImpulse, const FHitResult& hit)
 {
     UE_LOG(LogTemp, Warning, TEXT("Hit"));
 
     this->GetCharacterMovement()->Velocity = this->GetVelocity() * -1;
 }
 
-void AMainCharacter::BasicAttack() { this->AttacksComponent->PlayAttack(EAttackType::EAT_BasicAttack); }
+void AMainCharacter::OnWeaponHit(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool bFromSweep, const FHitResult& sweepResult)
+{
+    if (otherActor == nullptr || otherActor == this) return; //If we didn't hit anyone, we stop here.
+
+    if (otherActor->GetComponentByClass(UHealthComponent::StaticClass()) != nullptr)
+        UGameplayStatics::ApplyDamage(otherActor, this->AttacksComponent->GetCurrentAttackDamage(), this->GetController(), this, this->AttacksComponent->GetCurrentAttackDamageType());
+}
+
+void AMainCharacter::BasicAttack()                       { this->AttacksComponent->PlayAttack(EAttackType::EAT_BasicAttack); }
+void AMainCharacter::EnableWeaponCollision(bool enable)  { this->WeaponCollider->SetCollisionEnabled(enable ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision); }
 
 FRotator AMainCharacter::GetYawRotation() { return FRotator(0.f, this->Controller->GetControlRotation().Yaw, 0.f); }
 

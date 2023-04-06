@@ -35,15 +35,18 @@ public:
     UFUNCTION(BlueprintCallable) virtual void StartDealingDamage();
     UFUNCTION(BlueprintCallable) virtual void StopDealingDamage();
 
-    UFUNCTION(BlueprintCallable) inline bool CanDealDamage() { return this->DealDamage; }
+    UFUNCTION(BlueprintCallable) inline bool                     CanDealDamage()   const  { return this->DealDamage; }
+    UFUNCTION(BlueprintCallable) inline int                      GetAttackDamage() const  { return this->AttackDamage;}
+    UFUNCTION(BlueprintCallable) inline TSubclassOf<UDamageType> GetDamageType()   const  { return this->DamageType; }
 protected:
 
-    UPROPERTY(EditDefaultsOnly) TArray<UAnimMontage*> Attacks;      //This store all the different animation parts of this attack (IMPORTANT: list order is used to know what animation to play first).  
-    UPROPERTY(EditAnywhere)     int                   AttackDamage; //The base damage that this attack would deal. 
+    UPROPERTY(EditDefaultsOnly) TSubclassOf<UDamageType> DamageType;   //What type of damage this attack is going to deal ?
+    UPROPERTY(EditDefaultsOnly) TArray<UAnimMontage*>    Attacks;      //This store all the different animation parts of this attack (IMPORTANT: list order is used to know what animation to play first).  
+    UPROPERTY(EditAnywhere)     int                      AttackDamage; //The base damage that this attack would deal. 
     
-    bool IsPlaying;                                                 //Is this attack currently being played ?
-    int  ComboCounter;                                              //We store the current combo index, when the character has already played all the animation this get reset to 0;
-    bool DealDamage;                                                //Can we currently deal damage?     
+    bool IsPlaying;                                                    //Is this attack currently being played ?
+    int  ComboCounter;                                                 //We store the current combo index, when the character has already played all the animation this get reset to 0;
+    bool DealDamage;                                                   //Can we currently deal damage?     
 
     //We return the animation instance that's connected to this attack and if there's non show an error.
     UAnimInstance* const GetUsedAnimInstance() const;

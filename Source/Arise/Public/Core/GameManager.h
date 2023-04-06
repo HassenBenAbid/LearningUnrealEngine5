@@ -6,6 +6,8 @@
 #include "Engine/GameInstance.h"
 #include "GameManager.generated.h"
 
+#define COLLISION_HITTABLE    ECC_GameTraceChannel2
+
 /**
  * 
  */

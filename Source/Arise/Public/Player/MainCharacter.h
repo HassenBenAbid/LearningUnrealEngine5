@@ -3,14 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Camera/CameraComponent.h"
-#include "GameFramework/Character.h"
 #include "AriseTimelineComponent.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "NiagaraFunctionLibrary.h"
-#include "Components/CapsuleComponent.h"
-#include "Components/BoxComponent.h"
 #include "Core/Components/AttacksComponent.h"
+#include "GameFramework/Character.h"
 #include "MainCharacter.generated.h"
 
 UCLASS()
@@ -40,10 +36,13 @@ private:
     inline static const float MIN_KEY_TIME_HELD        = 0.5f;  //The amount of time the key responsible for guided teleportation to be held before it triggers.
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = true))
-    USpringArmComponent* CameraBoom; //This will allow us to make sure that the camera is always positioned behind the player.
+    class USpringArmComponent* CameraBoom; //This will allow us to make sure that the camera is always positioned behind the player.
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = true))
-    UCameraComponent* FollowCamera;  //This is the camera that will follow the player.
+    class UCameraComponent* FollowCamera;  //This is the camera that will follow the player.
+
+    UPROPERTY(VisibleAnywhere)
+    class UBoxComponent* WeaponCollider;
 
     UPROPERTY(EditDefaultsOnly, Category = Teleport, meta = (AllowPrivateAccess = true))
     UAriseTimelineComponent* TimelineComponent; //
@@ -57,9 +56,6 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = Attacks)
     UAttacksComponent* AttacksComponent; //This will take care of storing the different attacks and starting them.
 
-    UPROPERTY(VisibleAnywhere)
-    UBoxComponent* WeaponCollider;
-
 
     UPROPERTY(EditAnywhere, Category = Teleport)
     float              TeleportDistance; //The distance that the player can teleport.
@@ -70,9 +66,7 @@ private:
     UPROPERTY(EditAnywhere, Category = movement, meta = (AllowPrivateAccess = true))
     float MovementSpeed;
 
-
-    UPROPERTY() APlayerController* MainController;
-    UPROPERTY() UAnimInstance*     PlayerAnim;
+    UPROPERTY() UAnimInstance* PlayerAnim;
 
     FVector TeleportTargetPosition;
 
@@ -82,8 +76,14 @@ private:
     void MoveRight(float value);   //Move the player right/left.
     void TeleportAbility();        //This is responsible for the logic behind player teleportation ability.
 
+    //We use this when the character hits a static object (like a wall) to actually eliminate the sliding effect when he keeps running into it.
     UFUNCTION()
-    void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+    void OnObjectHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrimitiveComponent* otherComp, FVector normalImpulse, const FHitResult& hit);
+
+    UFUNCTION()
+    void OnWeaponHit(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool bFromSweep, const FHitResult& sweepResult);
+
+    void EnableWeaponCollision(bool enable); //Takes care of enabling the weapon collision when we want it to actually deal damage.
 
     /*** Utils ***/
 

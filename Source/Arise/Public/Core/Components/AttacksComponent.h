@@ -41,6 +41,8 @@ public:
     inline void SetAnimationInstance(UAnimInstance* animInstance) { this->AnimationInstance = animInstance; }
     
     UFUNCTION(BlueprintCallable) inline UAttack* const GetCurrentAttack() const {return this->AttacksIntances[this->CurrentAttackType]; }
+    inline int                      GetCurrentAttackDamage()     const { return this->GetCurrentAttack()->GetAttackDamage(); } //Get the amount of damage that the current attack deals.
+    inline TSubclassOf<UDamageType> GetCurrentAttackDamageType() const { return this->GetCurrentAttack()->GetDamageType(); }   //Get the current attack damage type.
 
 protected:
 
