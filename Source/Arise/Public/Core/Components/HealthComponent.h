@@ -5,11 +5,12 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "UI/OneCustomFloatWidget.h"
+#include "UI/FocusAtTargetWidgetComponent.h"
 #include "HealthComponent.generated.h"
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class ARISE_API UHealthComponent : public UActorComponent
+class ARISE_API UHealthComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
@@ -21,20 +22,21 @@ public:
 
     UFUNCTION(BlueprintCallable) inline float GetHealthPercentage() const { return (float)this->CurrentHealth / (float)this->MaxHealth; };
 
-    void InitializeHealthUI(class UWidgetComponent& widgetComponent); //Using the specified widget compoenent, we create the health widget and update it.
     void ChangeHealth(int value);
 
 protected:
 
 	virtual void BeginPlay() override;
 
+    virtual void OnRegister() override;
+
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
 
     UPROPERTY(EditDefaultsOnly) TSubclassOf<UOneCustomFloatWidget> HealthWidget;
-    UPROPERTY() UOneCustomFloatWidget* CurrentHealthWidget; //The current health widget instance that's owned by this component.
-
+    UPROPERTY(EditDefaultsOnly) UFocusAtTargetWidgetComponent*     HealthWidgetComponent;
+    UPROPERTY()                 UOneCustomFloatWidget*             CurrentHealthWidget; //The current health widget instance that's owned by this component.
 
     UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true)) int  MaxHealth;
     UPROPERTY(VisibleInstanceOnly)                              int  CurrentHealth;

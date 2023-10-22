@@ -32,9 +32,6 @@ private:
     UPROPERTY(EditDefaultsOnly) 
     UStaticMeshComponent* MeshComponent;
 
-    UPROPERTY(EditDefaultsOnly) 
-    UFocusAtTargetWidgetComponent* WidgetComponent;
-
     UPROPERTY(EditAnywhere)     
     UHealthComponent* HealthComponent;
 

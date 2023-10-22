@@ -16,17 +16,13 @@ ABasicEnemy::ABasicEnemy()
     this->MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
     this->MeshComponent->SetupAttachment(this->GetRootComponent());
 
-    this->WidgetComponent = CreateDefaultSubobject<UFocusAtTargetWidgetComponent>(TEXT("WidgetComponent"));
-    this->WidgetComponent->SetupAttachment(this->MeshComponent);
-
     this->HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+    this->HealthComponent->SetupAttachment(this->MeshComponent);
 }
 
 void ABasicEnemy::BeginPlay()
 {
     Super::BeginPlay();
-
-    this->HealthComponent->InitializeHealthUI(*this->WidgetComponent);
 }
 
 // Called every frame
@@ -41,6 +37,4 @@ void ABasicEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
-
-//float ABasicEnemy::GetHealthPercentage() {return this->CurrentHealth / this->MaxHealth; }
 
